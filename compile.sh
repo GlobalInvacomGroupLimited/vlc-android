@@ -233,8 +233,11 @@ fi
 TESTED_HASH=b1dadb2
 if [ ! -d "vlc" ]; then
     diagnostic "VLC source not found, cloning"
-    git clone https://git.videolan.org/git/vlc/vlc-3.0.git vlc
-    checkfail "vlc source: git clone failed"
+    git clone git://sourcery/vlc.git vlc
+    cd vlc
+    git checkout gi_master
+    checkfail "vlc source: git checkout failed"
+    cd ..
 fi
 diagnostic "VLC source found"
 cd vlc
