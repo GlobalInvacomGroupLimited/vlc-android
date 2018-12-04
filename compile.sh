@@ -251,7 +251,7 @@ fi
 TESTED_HASH=b1dadb2
 if [ ! -d "vlc" ]; then
     diagnostic "VLC source not found, cloning"
-    git clone git://sourcery/vlc.git vlc
+    git clone https://github.com/GlobalInvacomGroupLimited/vlc.git vlc
     cd vlc
     if [ !-z "$GIT_TAG" ]; then
         git checkout ${GIT_TAG}
