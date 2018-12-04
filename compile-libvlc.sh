@@ -780,9 +780,7 @@ else
       rm -rf ${MEDIALIBRARY_MODULE_DIR}/jni/obj
     fi
 fi
-if [ "$RELEASE" = 1 ]; then
     git reset --hard ${MEDIALIBRARY_HASH}
-fi
 cd ${SRC_DIR}
 echo -e "\e[1m\e[36mCFLAGS:            ${CFLAGS}\e[0m"
 echo -e "\e[1m\e[36mEXTRA_CFLAGS:      ${EXTRA_CFLAGS}\e[0m"
