@@ -262,10 +262,7 @@ class MediaParsingService : Service(), DevicesDiscoveryCb, CoroutineScope {
             val isIgnored = sharedPreferences.getBoolean("ignore_$uuid", false)
             if (!isIgnored && isNew) showStorageNotification(device)
         }
-        withContext(Dispatchers.IO) { for (device in missingDevices) {
-            val uri = Uri.parse(device)
-            medialibrary.removeDevice(uri.lastPathSegment, uri.path)
-        } }
+        withContext(Dispatchers.IO) { for (device in missingDevices) medialibrary.removeDevice(FileUtils.getFileNameFromPath(device)) }
         serviceLock = false
         exitCommand()
     }
