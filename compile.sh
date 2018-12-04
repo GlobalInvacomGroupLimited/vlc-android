@@ -34,6 +34,8 @@ while [ $# -gt 0 ]; do
             echo "Use -s to set your keystore file and -p for the password"
             echo "Use -c to get a ChromeOS build"
             echo "Use -l to build only LibVLC"
+            echo "Use -t|--tag to fetch vlc source with specific git tag"
+            echo "  e.g --tag v0.00rc1"
             exit 0
             ;;
         a|-a)
@@ -71,6 +73,10 @@ while [ $# -gt 0 ]; do
         --no-ml)
             NO_ML=1
             ;;
+        -t|--tag)
+            GIT_TAG=$2
+            shift
+            ;;
         *)
             diagnostic "$0: Invalid option '$1'."
             diagnostic "$0: Try --help for more information."
@@ -103,6 +109,18 @@ else
     diagnostic "Invalid arch specified: '$ANDROID_ABI'."
     diagnostic "Try --help for more information"
     exit 1
+fi
+#####################
+# Check for git tag #
+#####################
+if [ ! -z "$GIT_TAG" ]; then
+  # a git tag has been specified, check if repo is on that tag
+  GIT_LOCATION=$(git log --pretty=format:'%ad %h %d' --abbrev-commit --date=short -1)
+  echo $GIT_LOCATION
+  if [[ $GIT_LOCATION != *$GIT_TAG* ]]; then
+    echo "tag $GIT_TAG not found - run git checkout $GIT_TAG first";
+    exit 0
+  fi
 fi
 
 ##########
@@ -235,19 +253,47 @@ if [ ! -d "vlc" ]; then
     diagnostic "VLC source not found, cloning"
     git clone git://sourcery/vlc.git vlc
     cd vlc
-    git checkout gi_master
+    if [ !-z "$GIT_TAG" ]; then
+        git checkout ${GIT_TAG}
+    else
+        git checkout gi_master
+    fi
     checkfail "vlc source: git checkout failed"
     cd ..
 fi
 diagnostic "VLC source found"
 cd vlc
-if ! git cat-file -e ${TESTED_HASH}; then
-    cat 1>&2 << EOF
+if [ ! -z "$GIT_TAG" ]; then
+    # a git tag has been specified, check if vlc repo is on that tag
+    VLC_GIT_LOCATION=$(git log --pretty=format:'%ad %h %d' --abbrev-commit --date=short -1)
+    echo $VLC_GIT_LOCATION
+    if [[ $VLC_GIT_LOCATION != *$GIT_TAG* ]]; then
+        echo "VLC source - tag $GIT_TAG not found - run git checkout $GIT_TAG first";
+        exit 0
+    fi
+    
+    # we must be either on branch gi_master at $GIT_TAG or (HEAD detached at $GIT_TAG)
+    # check if TESTED_HASH exists in current branch
+    if [ $(git branch --contains ${TESTED_HASH}) != "* (HEAD detached at"* ]; then
+        if ["$(git branch --contains ${TESTED_HASH} gi_master)" != "* gi_master" ]; then 
+            cat << EOF
 ***
-*** Error: Your vlc checkout does not contain the latest tested commit: ${TESTED_HASH}
+*** Error: Your vlc checkout does not contain the specified tag or the latest tested commit: ${GIT_TAG} ${TESTED_HASH}
 ***
 EOF
-    exit 1
+            exit 1
+        fi
+    fi
+else
+    # check if TESTED_HASH exists in gi_master branch and gi_master is current branch
+    if [ "$(git branch --contains ${TESTED_HASH} gi_master)" != "* gi_master" ]; then 
+        cat << EOF
+    ***
+    *** Error: Your vlc checkout does not contain the latest tested commit: ${TESTED_HASH}
+    ***
+EOF
+        exit 1
+    fi
 fi
 if [ "$RELEASE" = 1 ]; then
     git reset --hard ${TESTED_HASH}
@@ -272,6 +318,10 @@ if [ "$ASAN" = 1 ]; then
 fi
 if [ "$NO_ML" = 1 ]; then
     OPTS="$OPTS --no-ml"
+fi
+
+if [ ! -z "$GIT_TAG" ]; then
+    OPTS="$OPTS -t $GIT_TAG"
 fi
 
 ./compile-libvlc.sh $OPTS

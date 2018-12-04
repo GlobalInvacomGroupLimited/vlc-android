@@ -26,6 +26,9 @@ while [ $# -gt 0 ]; do
         help|--help)
             echo "Use -a to set the ARCH"
             echo "Use --release to build in release mode"
+            echo "Use -t|--tag to fetch contrib sources with specific git tag"
+            echo "  e.g --tag v0.00rc1"
+            echo "  only libav,ffmpeg and postproc are available from sourcery"
             exit 1
             ;;
         a|-a)
@@ -43,6 +46,14 @@ while [ $# -gt 0 ]; do
             ;;
         release|--release)
             RELEASE=1
+            ;;
+        --gdb)
+            GDB_FILE="$2"
+            shift
+            ;;
+        -t|--tag)
+            GIT_TAG=$2
+            shift
             ;;
     esac
     shift
@@ -71,6 +82,19 @@ if [ -z "$MAKEFLAGS" ]; then
     elif [ "$UNAMES" == "Darwin" ] && which sysctl >/dev/null; then
         MAKEFLAGS=-j`sysctl -n machdep.cpu.thread_count`
     fi
+fi
+
+BUILD_TAG=
+if [ ! -z $GIT_TAG ]; then
+  # a git tag has been specified, check if vlc repo is on that tag
+  GIT_LOCATION=$(git log --pretty=format:'%ad %h %d' --abbrev-commit --date=short -1)
+  echo $GIT_LOCATION
+  if [ "$GIT_LOCATION" != "$GIT_TAG" ]; then
+    echo "tag $GIT_TAG not found - run git checkout $GIT_TAG first";
+    exit 0
+  else
+    BUILD_TAG=CHECKOUT_TAG=$GIT_TAG
+  fi
 fi
 
 ###########################
@@ -491,14 +515,14 @@ echo "LD=${NDK_TOOLCHAIN_PATH}/${TARGET_TUPLE}-ld" >> config.mak
 # fix modplug endianess check (narrowing error)
 export ac_cv_c_bigendian=no
 
-make $MAKEFLAGS fetch
+make $MAKEFLAGS fetch $BUILD_TAG
 checkfail "contribs: make fetch failed"
 
 # gettext
 which autopoint >/dev/null || make $MAKEFLAGS .gettext
 #export the PATH
 # Make
-make $MAKEFLAGS
+make $MAKEFLAGS $BUILD_TAG
 checkfail "contribs: make failed"
 
 cd ../../
