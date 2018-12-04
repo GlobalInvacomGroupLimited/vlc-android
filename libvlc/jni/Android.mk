@@ -28,6 +28,7 @@ LOCAL_LDLIBS := \
 	$(VLC_BUILD_DIR)/compat/.libs/libcompat.a \
 	$(VLC_CONTRIB_LDFLAGS) \
 	-ldl -lz -lm -llog \
+	-lraptorrtp -lpvraptor \
 	-lliveMedia -lUsageEnvironment -lBasicUsageEnvironment -lgroupsock \
 	-la52 -ljpeg \
 	-lavcodec -lebml \
