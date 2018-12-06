@@ -328,7 +328,7 @@ if [ "$REL" -eq 18 ]; then
     if [ "${HAVE_64}" = 1 ]; then
         ANDROID_API=21
     else
-        ANDROID_API=17
+        ANDROID_API=21
     fi
 else
     echo "NDK v18 needed, cf. https://developer.android.com/ndk/downloads/"
