@@ -269,17 +269,18 @@ fi
 # Fetch VLC source #
 ####################
 
-TESTED_HASH=5a9a71d
-VLC_REPOSITORY=https://git.videolan.org/git/vlc/vlc-3.0.git
+
+TESTED_HASH=705f1859
+VLC_REPOSITORY=https://github.com/GlobalInvacomGroupLimited/vlc.git
 if [ ! -d "vlc" ]; then
     diagnostic "VLC sources: not found, cloning"
-    git clone "${VLC_REPOSITORY}" vlc || fail "VLC sources: git clone failed"
+    git clone "${VLC_REPOSITORY}" -b openglSupport vlc || fail "VLC sources: git clone failed"
     cd vlc
     diagnostic "VLC sources: resetting to the TESTED_HASH commit (${TESTED_HASH})"
     git reset --hard ${TESTED_HASH} || fail "VLC sources: TESTED_HASH ${TESTED_HASH} not found"
-    diagnostic "VLC sources: applying custom patches"
+    #diagnostic "VLC sources: applying custom patches"
     # Keep Message-Id inside commits description to track them afterwards
-    git am --message-id ../libvlc/patches/vlc3/*.patch || fail "VLC sources: cannot apply custom patches"
+    #git am --message-id ../libvlc/patches/vlc3/*.patch || fail "VLC sources: cannot apply custom patches"
     cd ..
 else
     diagnostic "VLC source: found sources, leaving untouched"
