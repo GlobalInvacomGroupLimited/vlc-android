@@ -270,7 +270,7 @@ fi
 ####################
 
 
-TESTED_HASH=705f1859
+TESTED_HASH=31ebad9e
 VLC_REPOSITORY=https://github.com/GlobalInvacomGroupLimited/vlc.git
 if [ ! -d "vlc" ]; then
     diagnostic "VLC sources: not found, cloning"
